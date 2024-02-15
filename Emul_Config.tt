@@ -56,31 +56,48 @@
 	
 	
 	var stateTemplateList = new Dictionary<string, StateTemplate>();
-	stateTemplateList.Add(EventInfoConsts.AxisLoad, new StateTemplate(EventInfoConsts.AxisLoad_AxisLoad, EventInfoConsts.AxisLoad_HighLoad){ IndicatorNames=new string[] {"Axis load {0}, %" } } );
-	stateTemplateList.Add("Axis position", new StateTemplate("position"){ IndicatorNames=new string[] {"Axis position {0}" } } );
-	stateTemplateList.Add(EventInfoConsts.FeedRate, new StateTemplate(EventInfoConsts.FeedRate_Actual){ IndicatorNames=new string[] {"Feedrate {0}, mm/min" } } );
-	stateTemplateList.Add(EventInfoConsts.FeedRateOverrider, new StateTemplate(EventInfoConsts.FeedRateOverrider_Override){ IndicatorNames=new string[] {"Feedrate override {0}, %" } } );
-	stateTemplateList.Add(EventInfoConsts.RapidTraverseOverride, new StateTemplate(EventInfoConsts.RapidTraverseOverride_Override){ IndicatorNames=new string[] {"Rapid traverse override {0}, %" } });
-	stateTemplateList.Add(EventInfoConsts.SpindleLoad, new StateTemplate(EventInfoConsts.SpindleLoad_Load, EventInfoConsts.SpindleLoad_High){ IndicatorNames=new string[] {"Spindle load {0}, %" } } );
-	stateTemplateList.Add(EventInfoConsts.SpindleOverride, new StateTemplate(EventInfoConsts.SpindleOverride_Override){ IndicatorNames=new string[] {"Spindle override {0}, %" } } );
-	stateTemplateList.Add(EventInfoConsts.SpindleSpeed, new StateTemplate(EventInfoConsts.SpindleSpeed_Speed){ IndicatorNames=new string[] {"Spindle speed {0}, rpm" } } );
+	stateTemplateList.Add(EventInfoConsts.AxisLoad, new StateTemplate(EventInfoConsts.AxisLoad, EventInfoConsts.AxisLoad_AxisLoad, EventInfoConsts.AxisLoad_HighLoad){ 
+		IndicatorNames=new string[] {"Axis load {0}, %" }
+	} );
+	stateTemplateList.Add("Axis position", new StateTemplate("Axis position", "position"){ IndicatorNames=new string[] {"Axis position {0}" } } );
+	stateTemplateList.Add(EventInfoConsts.FeedRate, new StateTemplate(EventInfoConsts.FeedRate, EventInfoConsts.FeedRate_Actual){ IndicatorNames=new string[] {"Feedrate {0}, mm/min" } } );
+	stateTemplateList.Add(EventInfoConsts.FeedRateOverrider, new StateTemplate(EventInfoConsts.FeedRateOverrider, EventInfoConsts.FeedRateOverrider_Override){ IndicatorNames=new string[] {"Feedrate override {0}, %" } } );
+	stateTemplateList.Add(EventInfoConsts.RapidTraverseOverride, new StateTemplate(EventInfoConsts.RapidTraverseOverride, EventInfoConsts.RapidTraverseOverride_Override){ IndicatorNames=new string[] {"Rapid traverse override {0}, %" } });
+	stateTemplateList.Add(EventInfoConsts.SpindleLoad, new StateTemplate(EventInfoConsts.SpindleLoad, EventInfoConsts.SpindleLoad_Load, EventInfoConsts.SpindleLoad_High){ IndicatorNames=new string[] {"Spindle load {0}, %" } } );
+	stateTemplateList.Add(EventInfoConsts.SpindleOverride, new StateTemplate(EventInfoConsts.SpindleOverride, EventInfoConsts.SpindleOverride_Override){ IndicatorNames=new string[] {"Spindle override {0}, %" } } );
+	stateTemplateList.Add(EventInfoConsts.SpindleSpeed, new StateTemplate(EventInfoConsts.SpindleSpeed, EventInfoConsts.SpindleSpeed_Speed){ IndicatorNames=new string[] {"Spindle speed {0}, rpm" } } );
 	stateTemplateList.Add(EventInfoConsts.MachineStatistics, new StateTemplate(
+		EventInfoConsts.MachineStatistics,
 		EventInfoConsts.MachineStatistics_TotalNumberOfMachinedParts,
 		EventInfoConsts.MachineStatistics_PowerOnPeriod,
 		EventInfoConsts.MachineStatistics_AutomaticOperationTime,
-		EventInfoConsts.MachineStatistics_CuttingTime));
-	stateTemplateList.Add(EventInfoConsts.CurrentFrame, new StateTemplate(EventInfoConsts.CurrentFrame_FrameNumber, EventInfoConsts.CurrentFrame_FrameText){ 
+		EventInfoConsts.MachineStatistics_CuttingTime) {
+		EntityName = "MachineStatisticsEvent",
+		EntityFields = new string[] { "TotalNumberOfMachinedParts", "PowerOnPeriod", "AutomaticOperationTime", "CuttingTime" }
+	});
+			
+	stateTemplateList.Add(EventInfoConsts.CurrentFrame, new StateTemplate(EventInfoConsts.CurrentFrame, EventInfoConsts.CurrentFrame_FrameNumber, EventInfoConsts.CurrentFrame_FrameText){ 
 		IndicatorNames= new string[] {"Current frame number {0}", "Current frame text {0}" } 
 	});
 	
-	stateTemplateList.Add(EventInfoConsts.MachineMode, new StateTemplate(EventInfoConsts.MachineMode_Mode));
-	stateTemplateList.Add(EventInfoConsts.NCProgram, new StateTemplate(EventInfoConsts.NCProgram_MainProgram, EventInfoConsts.NCProgram_Status));
-	stateTemplateList.Add(EventInfoConsts.NCSubProgram, new StateTemplate(EventInfoConsts.NCSubProgram_Subprogram));
-	stateTemplateList.Add(EventInfoConsts.MachineState, new StateTemplate(EventInfoConsts.MachineState_State));
+	stateTemplateList.Add(EventInfoConsts.MachineMode, new StateTemplate(EventInfoConsts.MachineMode, EventInfoConsts.MachineMode_Mode){
+		EntityName = "MachineModeEvent",
+		EntityFields = new string[] { "Mode" }
+	});
+	stateTemplateList.Add(EventInfoConsts.NCProgram, new StateTemplate(EventInfoConsts.NCProgram, EventInfoConsts.NCProgram_MainProgram, EventInfoConsts.NCProgram_Status){
+		EntityName = "NCProgramEvent",
+		EntityFields = new string[] { "MainProgram", "Status" }
+	});
+	stateTemplateList.Add(EventInfoConsts.NCSubProgram, new StateTemplate(EventInfoConsts.NCSubProgram, EventInfoConsts.NCSubProgram_Subprogram){
+			EntityName = "NCSubProgramEvent",
+			EntityFields = new string[] { "SubProgram" }
+	});
+	stateTemplateList.Add(EventInfoConsts.MachineState, new StateTemplate(EventInfoConsts.MachineState, EventInfoConsts.MachineState_State){
+		EntityName = "MachineStateEvent",
+		EntityFields = new string[] { "Type" }
+	});
 	
 	var simpleStateList = new List<SimpleDriverState>();
-	var eventList = new List<EventTemplate>();
-		
 	var axisSnapshotTempalte = new List<SnapshotTemplate>();
 	{
 		foreach (var a in axes) {
@@ -98,11 +115,11 @@
 			snapshot.Items.Add("activeCmd",      string.Format("/CNC/channels/{0}/axes/{1}/activeCmd", channel, a.Name));
 			snapshot.Items.Add("activeMove",     string.Format("/CNC/channels/{0}/axes/{1}/activeMove", channel, a.Name));
 			
-			simpleStateList.Add(new SimpleDriverState("Axis position", stateTemplateList["Axis position"], snapshot, a) {
+			simpleStateList.Add(new SimpleDriverState(stateTemplateList["Axis position"], snapshot, a) {
 					SnapshotFields = new string[] { "coord" },
 					Transforms = new string[] {"operationType=\"Round\" operationValue=\"2\""}
 				});
-			simpleStateList.Add(new SimpleDriverState(EventInfoConsts.AxisLoad, stateTemplateList[EventInfoConsts.AxisLoad], snapshot, a) {
+			simpleStateList.Add(new SimpleDriverState(stateTemplateList[EventInfoConsts.AxisLoad], snapshot, a) {
 					SnapshotFields = new string[] { "load", "load" },
 					Transforms = new string[] {"operationType=\"Round\" operationValue=\"2\"", "operationType=\"AbsGreater\" operationValue=\"85.0\""}
 				});
@@ -118,11 +135,11 @@
 			snapshot.Items.Add("activeCmd",      string.Format("/CNC/channels/{0}/spindles/{1}/activeCmd", channel, s.Name));
 			snapshot.Items.Add("activeRotation", string.Format("/CNC/channels/{0}/spindles/{1}/activeRotation", channel, s.Name));
 			
-			simpleStateList.Add(new SimpleDriverState(EventInfoConsts.SpindleLoad, stateTemplateList[EventInfoConsts.SpindleLoad], snapshot, s) {
+			simpleStateList.Add(new SimpleDriverState(stateTemplateList[EventInfoConsts.SpindleLoad], snapshot, s) {
 				SnapshotFields = new string[] { "load", "load" },
 				Transforms = new string[] {"operationType=\"Round\" operationValue=\"0\"", "operationType=\"AbsGreater\" operationValue=\"85.0\""}
 			});
-			simpleStateList.Add(new SimpleDriverState(EventInfoConsts.SpindleSpeed, stateTemplateList[EventInfoConsts.SpindleSpeed], snapshot, s) { 
+			simpleStateList.Add(new SimpleDriverState(stateTemplateList[EventInfoConsts.SpindleSpeed], snapshot, s) { 
 				SnapshotFields = new string[] { "speed" } ,
 				Transforms = new string[] {"operationType=\"Round\" operationValue=\"2\"" }
 			} );
@@ -162,34 +179,31 @@
 			snapshot.Items.Add("programStatus",             string.Format("/CNC/channels/{0}/programStatus", chan.Name));
 			snapshot.Items.Add("programName",               string.Format("/CNC/channels/{0}/programName", chan.Name));
 			
-//			simpleStateList.Add(new SimpleDriverState(EventInfoConsts.FeedRate, stateTemplateList[EventInfoConsts.FeedRate], sn, chan) { 
+//			simpleStateList.Add(new SimpleDriverState(stateTemplateList[EventInfoConsts.FeedRate], sn, chan) { 
 //				SnapshotFields = new string[] { "actFeedRateIpo" } ,
 //				Transforms = new string[] {"operationType=\"Round\" operationValue=\"0\"" }
 //			} );
 
-			simpleStateList.Add(new SimpleDriverState(EventInfoConsts.SpindleOverride, stateTemplateList[EventInfoConsts.SpindleOverride], snapshot, chan) { 
+			simpleStateList.Add(new SimpleDriverState(stateTemplateList[EventInfoConsts.SpindleOverride], snapshot, chan) { 
 				SnapshotFields = new string[] { "spindleSpeedOvr" },
 				Transforms = new string[] {"operationType=\"Round\" operationValue=\"2\"" }
 			} );
 			
-			simpleStateList.Add(new SimpleDriverState(EventInfoConsts.RapidTraverseOverride, stateTemplateList[EventInfoConsts.RapidTraverseOverride], snapshot, chan) { 
+			simpleStateList.Add(new SimpleDriverState(stateTemplateList[EventInfoConsts.RapidTraverseOverride], snapshot, chan) { 
 				SnapshotFields = new string[] { "rapidTraverseOvr" } ,
 				Transforms = new string[] {"operationType=\"Round\" operationValue=\"2\"" }
 			} );
 			
-			simpleStateList.Add(new SimpleDriverState(EventInfoConsts.FeedRateOverrider, stateTemplateList[EventInfoConsts.FeedRateOverrider], snapshot, chan) { 
+			simpleStateList.Add(new SimpleDriverState(stateTemplateList[EventInfoConsts.FeedRateOverrider], snapshot, chan) { 
 				SnapshotFields = new string[] { "feedrateOvr" } ,
 				Transforms = new string[] {"operationType=\"Round\" operationValue=\"2\"" }
 			} );			
 			
-			simpleStateList.Add(new SimpleDriverState(EventInfoConsts.CurrentFrame, stateTemplateList[EventInfoConsts.CurrentFrame], snapshot, chan) { 
+			simpleStateList.Add(new SimpleDriverState(stateTemplateList[EventInfoConsts.CurrentFrame], snapshot, chan) { 
 				SnapshotFields = new string[] { "cBlockNum", "cBlockTxt" } 
 			} );			
 		}		
 	}
-	
-	foreach (var state in simpleStateList) 
-		eventList.Add(new EventTemplate(state.Id, state.Name + " "+state.Device.Name));	
 
 	
 #><root xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://x-tensive.com/dpa/driver-config">
@@ -201,7 +215,7 @@
 		foreach (var snapshot in channelSnapshotTempalte)
 			renderSnapshot(snapshot);
 		foreach (var snapshot in otherSnapshotTemplate)
-			renderSnapshot(snapshot);		
+			renderSnapshot(snapshot);
 #>
 		</snapshots>
 	</driver>
@@ -217,7 +231,7 @@
 	</states>
 	<driverStates><#
 	foreach (var ss in simpleStateList)	{ #>
-		<driverState driverIdentifier="<#= driverId #>" identifier="<#= ss.Id #>" stateIdentifier="<#= ss.StateTemplate.Id #>" isActive="true" deviceClass="<#= ss.Device.Class #>" deviceNumber="<#= ss.Device.Number #>">
+		<driverState driverIdentifier="<#= driverId #>" identifier="<#= ss.Id #>" stateIdentifier="<#= ss.StateTemplate.Id #>" isActive="true" deviceClass="<#= ss.Device.Class #>" deviceNumber="<#= ss.Device.Number #>" publish="true">
 			<stateTriggers>
 				<stateTrigger triggerIdentifier="<#= Guid.NewGuid() #>" triggerType="Snapshot">
 					<stateSnapshotTrigger identifier="<#= ss.Snapshot.Id #>" />
@@ -229,7 +243,7 @@
 					for (var i=0;i<ss.SnapshotFields.Length;i++) { #>
 						<dataItem descriptorName="<#= ss.StateTemplate.Items[i] #>">
 							<snapshotItem snapshotIdentifier="<#= ss.Snapshot.Id #>" descriptorName="<#= ss.SnapshotFields[i] #>" <#= ss.Transforms[i]??"" #> />
-						</dataItem><# } #>						
+						</dataItem><# } #>
 					</dataItems>
 				</stateSimpleProvider>
 			</stateProvider>
@@ -238,28 +252,11 @@
 		var chanIndex = 0;
 		foreach (var channel in channels) {
 			var chanSnapshot = channelSnapshotTempalte[chanIndex];
-			
 			var programState = Guid.NewGuid();
 			var machineModeState = Guid.NewGuid();
 			var machieStateState = Guid.NewGuid();
-			
-			eventList.Add(new EventTemplate(programState, EventInfoConsts.NCProgram + " "+channel.Name){
-				StateName = EventInfoConsts.NCProgram,
-				EntityName = "NCProgramEvent",
-				EntityFields = new string[] { "MainProgram", "Status" }
-			});		
-			eventList.Add(new EventTemplate(machineModeState, EventInfoConsts.MachineMode + " "+channel.Name) {
-				StateName = EventInfoConsts.MachineMode,
-				EntityName = "MachineModeEvent",
-				EntityFields = new string[] { "Mode" }
-			});	
-			eventList.Add(new EventTemplate(machieStateState, EventInfoConsts.MachineState + " "+channel.Name){
-				StateName = EventInfoConsts.MachineState,
-				EntityName = "MachineStateEvent",
-				EntityFields = new string[] { "Type" }
-			});
 			#>
-<driverState driverIdentifier="<#= driverId #>" identifier="<#= machineModeState #>" stateIdentifier="<#= stateTemplateList[EventInfoConsts.MachineMode].Id #>" isActive="true" deviceClass="<#= channel.Class #>" deviceNumber="<#= channel.Number #>">
+<driverState driverIdentifier="<#= driverId #>" identifier="<#= machineModeState #>" stateIdentifier="<#= stateTemplateList[EventInfoConsts.MachineMode].Id #>" isActive="true" deviceClass="<#= channel.Class #>" deviceNumber="<#= channel.Number #>" publish="true" >
 			<stateTriggers>
 				<stateTrigger triggerIdentifier="<#= Guid.NewGuid() #>" triggerType="Snapshot">
 					<stateSnapshotTrigger identifier="<#= chanSnapshot.Id #>" />
@@ -307,7 +304,7 @@ namespace Xtensive.DPA.DriverManager
 			</stateProvider>
 		</driverState>
 		
-		<driverState driverIdentifier="<#= driverId #>" identifier="<#= programState #>"  stateIdentifier="<#= stateTemplateList[EventInfoConsts.NCProgram].Id #>" isActive="true" deviceClass="<#= channel.Class #>" deviceNumber="<#= channel.Number #>">
+		<driverState driverIdentifier="<#= driverId #>" identifier="<#= programState #>"  stateIdentifier="<#= stateTemplateList[EventInfoConsts.NCProgram].Id #>" isActive="true" deviceClass="<#= channel.Class #>" deviceNumber="<#= channel.Number #>" publish="true" >
 			<stateTriggers>
 				<stateTrigger triggerIdentifier="<#= Guid.NewGuid() #>" triggerType="Snapshot">
 					<stateSnapshotTrigger identifier="<#= chanSnapshot.Id #>" />
@@ -375,8 +372,8 @@ namespace Xtensive.DPA.DriverManager
 			</stateProvider>
 		</driverState>
 		
-		<driverState driverIdentifier="<#= driverId #>" identifier="<#= machieStateState #>" stateIdentifier="<#= stateTemplateList[EventInfoConsts.MachineState].Id #>" isActive="true" deviceClass="<#= channel.Class #>" deviceNumber="<#= channel.Number #>">
-			<stateTriggers>				
+		<driverState driverIdentifier="<#= driverId #>" identifier="<#= machieStateState #>" stateIdentifier="<#= stateTemplateList[EventInfoConsts.MachineState].Id #>" isActive="true" deviceClass="<#= channel.Class #>" deviceNumber="<#= channel.Number #>" publish="true" >
+			<stateTriggers>
 				<stateTrigger triggerIdentifier="<#= Guid.NewGuid() #>" triggerType="State">
 					<stateStateTrigger identifier="<#= programState #>" />
 				</stateTrigger>
@@ -443,46 +440,31 @@ namespace Xtensive.DPA.DriverManager
 		}
 		#>
 	</driverStates>
-	<events><#
-	foreach (var eventItem in eventList) { 
-		var  group = eventItem.Name.IndexOf("Tool") == 0 ? "Magazine" : ""; #>
-		<event driverIdentifier="<#= driverId #>" group="<#= group #>" eventIdentifier="<#= eventItem.Id #>" name="<#= eventItem.Name #>" isActive="true">
-			<eventTriggers>
-				<eventTrigger triggerIdentifier="<#= Guid.NewGuid() #>" triggerType="State">
-					<eventStateTrigger><#= eventItem.StateId #></eventStateTrigger>
-				</eventTrigger>
-			</eventTriggers>
-			<eventProvider providerType="State">
-				<eventStateProvider><#= eventItem.StateId #></eventStateProvider>
-			</eventProvider>
-		</event><#}#>
-	</events>
 	<eventStorages><#
-	foreach (var eventItem in eventList)
-		if (!string.IsNullOrEmpty(eventItem.StateName) && !string.IsNullOrEmpty(eventItem.EntityName)) { 
-			var fields = stateTemplateList[eventItem.StateName].Items;
+	foreach (var driverState in simpleStateList)
+		if (!string.IsNullOrEmpty(driverState.StateTemplate.EntityName)) {
 		#>
-		<eventStorage eventIdentifier="<#= eventItem.Id #>" entityName="<#= eventItem.EntityName #>" isActive="true">
+		<eventStorage eventIdentifier="<#= driverState.Id #>" entityName="<#= driverState.StateTemplate.EntityName #>" isActive="true">
 			<settingsValueStorages><# 
-			for (var i=0;i<eventItem.EntityFields.Length;i++) { #>
-				<settingsValueStorage valueName="<#= fields[i] #>" entityFieldName="<#=eventItem.EntityFields[i] #>" /><#}#>
+			for (var i=0;i<driverState.StateTemplate.Items.Length;i++) { #>
+				<settingsValueStorage valueName="<#= driverState.StateTemplate.Items[i] #>" entityFieldName="<#=driverState.StateTemplate.EntityFields[i] #>" /><#}#>
 			</settingsValueStorages>
-		</eventStorage><#}#>	
-	</eventStorages>	
+		</eventStorage><#}#>
+	</eventStorages>
 	<indicators><#
 		foreach (var st in simpleStateList) 
 			if (st.StateTemplate.IndicatorNames != null)
 				for (var i=0;i<st.StateTemplate.IndicatorNames.Length; i++) { #>
 		<indicator
 		  name="<#=st.StateTemplate.IndicatorNames[i] #>"
-		  stateName = "<#= st.Name #>" stateField="<#= st.StateTemplate.Items[i] #>"
+		  stateName = "<#= st.StateTemplate.Name #>" stateField="<#= st.StateTemplate.Items[i] #>"
 		  class="<#= st.Device.Class #>" number="<#= st.Device.Number #>"
 		  storeType="Memory LogToFileSystem"
-		  memoryStoreLimitByCount="true" memoryStoreCountLimit="1000" MemoryStorePeriodLimit="10:00:00">
-		  fileStoreDaysLimit="365"
+		  memoryStoreLimitByCount="true" memoryStoreCountLimit="1000" MemoryStorePeriodLimit="10:00:00"
+		  fileStoreDaysLimit="365" >
 		  <nameParameters>
 				<nameParameter value="<#= st.Device.Name #>" />
-		  </nameParameters>		  
+		  </nameParameters>
 		</indicator><#}#>
 	</indicators>
 </root>
