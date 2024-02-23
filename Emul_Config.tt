@@ -17,7 +17,7 @@
 
 <#
 	var driverInfo = T4GeneratorMono.GetParameterValue<DriverInfo>(this.Host, "driverInfo");
-	var configuration = T4GeneratorMono.GetParameterValue<DriverConfigurationInfo>(this.Host, "configuration");
+	var configuration = T4GeneratorMono.GetParameterValue<OpcUaDriverConfigurationInfo>(this.Host, "configuration");
 	var driver = T4GeneratorMono.GetParameterValue<T4DriverData>(this.Host, "driver");
 #>
 
@@ -208,7 +208,90 @@
 	
 #><root xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://x-tensive.com/dpa/driver-config">
 	<driver type="<#= configuration.Type #>" identifier="<#= driverId #>" name="<#= configuration.Name #>">
-		<device />
+		<device>
+			<opcUa mainChannel="<#= configuration.MainChannel #>">
+				<keepAliveIntervalMs><#= configuration.KeepAliveIntervalMs #></keepAliveIntervalMs>
+				<sessionTimeoutMs><#= configuration.SessionTimeoutMs #></sessionTimeoutMs>
+				<maxReconnectionIntervalMs><#= configuration.MaxReconnectionIntervalMs #></maxReconnectionIntervalMs>
+				<operationTimeoutMs><#= configuration.OperationTimeoutMs #></operationTimeoutMs>
+				<programDownloadConfig>
+					<PerChannel>
+						<opcUaProgramDownloadPerChannel>
+							<Channel xsi:nil="true" />
+							<Config>
+								<ByScript>
+									<content>
+<![CDATA[
+using System;
+using System.Text;
+using System.Threading.Tasks;
+using Xtensive.DPA.Contracts;
+using Xtensive.DPA.OPCUA;
+
+namespace Xtensive.DPA.Server
+{
+    internal class EmulDownloadScript : Xtensive.DPA.Protocols.IProgramDownloadScript
+    {
+        public async Task<DownloadProgramResponseInfo> Download(int channel, string programName, IOpcUaClient client)
+        {
+            var pathParent = string.Format("CNC/channels/CHAN{0}/fs", channel);
+            var pathChild = string.Format("CNC/channels/CHAN{0}/fs/download", channel);
+
+            var nodeParent = await client.GetNodeByRoute(pathParent);
+            var nodeMethod = await client.GetNodeByRoute(pathChild);
+            
+            var result = await client.Invoke(nodeParent, nodeMethod, new object[] { programName});
+            return new DownloadProgramResponseInfo() {
+                Data = Encoding.UTF8.GetBytes((string)result[0]),
+                Format = FileFormat.PlainTextUTF8
+            };            
+        }
+    }
+}]]>
+									</content>
+								</ByScript>
+							</Config>
+						</opcUaProgramDownloadPerChannel>
+					</PerChannel>
+				</programDownloadConfig>
+				<programRenameConfig />
+				<programUploadConfig>
+					<PerChannel>
+						<opcUaProgramUploadPerChannel>
+							<Channel xsi:nil="true" />
+							<Config>
+								<ByScript>
+									<content>
+<![CDATA[
+using System.Text;
+using System.Threading.Tasks;
+using Xtensive.DPA.OPCUA;
+
+namespace Xtensive.DPA.Server
+{
+    internal class EmulUploadScript : Protocols.IProgramUploadScript
+    {
+        public async Task Upload(int channel, string programName, byte[] content, IOpcUaClient client)
+        {
+            var pathParent = string.Format("CNC/channels/CHAN{0}/fs", channel);
+            var pathChild = string.Format("CNC/channels/CHAN{0}/fs/upload", channel);
+
+            var nodeParent = await client.GetNodeByRoute(pathParent);
+            var nodeMethod = await client.GetNodeByRoute(pathChild);
+
+            await client.Invoke(nodeParent, nodeMethod, new object[] { programName, Encoding.UTF8.GetString(content) });
+        }
+    }
+}
+]]>
+									</content>
+								</ByScript>
+							</Config>
+						</opcUaProgramUploadPerChannel>
+					</PerChannel>
+				</programUploadConfig>
+			</opcUa>
+		</device>
 		<snapshots><#
 		foreach (var snapshot in axisSnapshotTempalte)
 			renderSnapshot(snapshot);
